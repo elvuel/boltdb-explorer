@@ -55,7 +55,7 @@
       bind:content
       onChange={(updatedContent) => {
         // console.log(updatedContent)
-        items[contentIdx].data = updatedContent
+        items[contentIdx].data = updatedContent["json"]
       }}
     />
   </div>

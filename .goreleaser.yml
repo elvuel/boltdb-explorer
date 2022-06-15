@@ -1,0 +1,51 @@
+project_name: boltdb-explorer
+dist: ./release-dist
+# before:
+#   hooks:
+#     # release font-end package
+#     - npm run build:app
+#     # generate front-end package's go binary data
+#     - make embed-dist
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+    dir: .
+    id: boltdb-explorer
+    main: ./backend
+    binary: boltdb-explorer
+changelog:
+  skip: true
+release:
+  disable: true
+archives:
+  - format: binary
+dockers:
+  - image_templates:
+      - elvuel/boltdb-explorer:latest
+      - elvuel/boltdb-explorer:{{.Env.GORELEASER_CURRENT_TAG}}
+    build_flag_templates:
+      - --platform=linux/amd64
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description=BoltDB Explorer
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.licenses=MIT
+    id: boltdb-explorer
+    goos: linux
+    goarch: amd64
+    skip_push: "false"
+    dockerfile: Dockerfile
+    use: buildx
+docker_manifests:
+  - name_template: elvuel/boltdb-explorer:{{ .Env.GORELEASER_CURRENT_TAG }}
+    image_templates:
+      - elvuel/boltdb-explorer:{{ .Env.GORELEASER_CURRENT_TAG }}
+    id: boltdb-explorer
+checksum:
+  name_template: "checksums.txt"

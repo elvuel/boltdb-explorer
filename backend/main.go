@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/elvuel/boltdb-explorer/backend/bolt"
@@ -37,7 +38,15 @@ func main() {
 	corsConfig.AllowAllOrigins = true
 	engine.Use(cors.New(corsConfig))
 
-	engine.POST("/upload", func(c *gin.Context) {
+	engine.Use(func(c *gin.Context) {
+		if !strings.HasPrefix(c.Request.URL.Path, "/_api/") {
+			http.FileServer(http.FileSystem(AssetFile())).ServeHTTP(c.Writer, c.Request)
+			c.Abort()
+		}
+	})
+
+	api := engine.Group("/_api")
+	api.POST("/upload", func(c *gin.Context) {
 		c.Request.ParseMultipartForm(32 << 20)
 		f, h, err := c.Request.FormFile("file")
 		if err != nil {
@@ -71,7 +80,7 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"data": result, "filename": h.Filename})
 	})
 
-	engine.POST("/download", func(c *gin.Context) {
+	api.POST("/download", func(c *gin.Context) {
 		payload := make(map[string]interface{})
 		err := json.NewDecoder(c.Request.Body).Decode(&payload)
 		if err != nil {
